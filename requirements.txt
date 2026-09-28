@@ -1,0 +1,4 @@
+streamlit
+tensorflow
+beautifulsoup4
+numpy
