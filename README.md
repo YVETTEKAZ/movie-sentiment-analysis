@@ -1,46 +1,101 @@
-#  Movie Review Sentiment Analysis
+# 🎬 Movie Review Sentiment Analysis
 
-A deep learning project that analyzes movie reviews and predicts whether the review expresses a **positive** or **negative** sentiment.
+A deep learning project that uses Natural Language Processing (NLP) to analyze movie reviews and classify them as **positive** or **negative**.
 
-##  Project Overview
+The project includes a neural-network-based sentiment classifier and an interactive Streamlit application for testing movie reviews.
 
-This project uses Natural Language Processing (NLP) and a neural network to classify movie reviews based on their sentiment.
+---
 
-The project started with a trainable word-embedding model using a 64-dimensional embedding. As part of improving the project, the embedding representation was extended to 128 dimensions.
+## 📌 Project Overview
 
-The project is also deployed as an interactive Streamlit application where users can enter a movie review and receive a sentiment prediction with a confidence score.
+This project explores how deep learning and word embeddings can be used to perform sentiment analysis on movie reviews.
 
-##  Problem
+The project started with a trainable Keras embedding model using a **64-dimensional embedding**. As part of improving the model, the embedding dimension was increased to **128 dimensions**.
 
-Movie reviews contain useful information about how viewers feel about a movie. However, computers cannot directly understand raw text.
+The current completed experiment focuses on comparing these two embedding configurations.
+
+Further experimentation with **Word2Vec embeddings** is planned as the next stage of model improvement.
+
+---
+
+## 🎯 Problem
+
+Movie reviews contain information about how viewers feel about a movie. However, machine-learning models cannot directly process raw natural-language text.
 
 The goal of this project is to build a model that can:
 
 - Process natural-language movie reviews
-- Learn useful representations of words
+- Learn numerical representations of words
 - Classify reviews as positive or negative
-- Provide a confidence score for predictions
+- Produce a confidence score for predictions
 
-##  Dataset
+---
+
+## 📊 Dataset
 
 The project uses the **IMDB Dataset of 50,000 movie reviews**.
 
-Each review has one of two sentiment labels:
+Each review belongs to one of two sentiment classes:
 
 - `positive`
 - `negative`
 
-The dataset was cleaned before training, including removing duplicate reviews.
+The dataset was cleaned before training, including the removal of duplicate reviews.
 
-After duplicate removal, the dataset contained **49,582 reviews**.
+After removing duplicates, the dataset contained:
 
-##  Model Approach
+**49,582 reviews**
+
+---
+
+## 🧠 Model Approach
 
 ### Text Processing
 
-The reviews are converted into numerical representations using tokenization.
+The movie reviews are converted into numerical sequences using a Keras tokenizer.
 
-The vocabulary is limited to the most frequent 10,000 words:
+The vocabulary is limited to the **10,000 most frequent words**.
+
+Reviews are padded or truncated to a maximum length of **250 tokens** so that they can be processed by the neural network.
+
+```python
+max_length = 250
+```
+
+The data is divided into training and testing sets using an 80/20 split with a fixed random state:
+
+```python
+train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+```
+
+---
+
+## 🔤 Word Embeddings
+
+The model uses a **trainable Keras Embedding layer**.
+
+The embedding layer converts each word ID into a numerical vector that is learned during model training.
+
+### Original Baseline
+
+The original model used a 64-dimensional embedding:
+
+```python
+Embedding(
+    input_dim=10000,
+    output_dim=64
+)
+```
+
+### 128D Experiment
+
+For the assignment experiment, the embedding dimension was increased from **64 to 128**:
 
 ```python
 Embedding(
@@ -49,52 +104,45 @@ Embedding(
 )
 ```
 
-Reviews are then padded to the same sequence length so they can be processed by the neural network.
+The purpose of this experiment was to investigate whether giving each word a larger representation space would affect sentiment classification performance.
 
-### Word Embeddings
+The rest of the model architecture and training setup were kept largely unchanged to make the comparison meaningful.
 
-The model uses a **trainable Keras Embedding layer**.
+---
 
-Each word is represented by a numerical vector that the model learns during training.
+## 🏗️ Model Architecture
 
-The current experiment uses:
-
-```text
-Vocabulary size: 10,000
-Embedding dimension: 128
-```
-
-The embedding dimension was increased from **64 to 128** as an experiment to give the model a larger representation space for learning word patterns.
-
-### Model Architecture
+The current 128D experiment follows this architecture:
 
 ```text
-Input review
+Input Review
      ↓
 Tokenization
      ↓
-Padding
+Padding / Truncation
      ↓
 128-dimensional Word Embedding
      ↓
 Global Average Pooling
      ↓
-Dense layer (64 units)
+Dense Layer (64 units)
      ↓
 Dropout (0.5)
      ↓
-Sigmoid output
+Sigmoid Output
      ↓
 Positive / Negative
 ```
 
-## Baseline Results
+The final sigmoid layer produces a probability that is used to determine the predicted sentiment.
 
-The original model used a 64-dimensional trainable embedding.
+---
 
-The improved experiment used a 128-dimensional trainable embedding.
+## 📈 Results
 
-| Metric | 64D Model | 128D Model |
+The original 64D model is used as the baseline for comparison with the 128D experiment.
+
+| Metric | Original 64D | 128D Experiment |
 |---|---:|---:|
 | Accuracy | 87.66% | 86.97% |
 | Precision | 90.99% | 83.06% |
@@ -102,43 +150,77 @@ The improved experiment used a 128-dimensional trainable embedding.
 | F1 Score | 87.19% | 87.75% |
 | ROC-AUC | 95.10% | 94.90% |
 
-> **Note:** The 128D values represent one experimental training run. Neural-network training can produce slightly different results between runs because of random initialization and training behavior. Future experiments will use controlled random seeds for more reproducible comparisons.
+### Results Interpretation
 
-### Observations
+The 128D experiment produced a different precision-recall tradeoff compared with the original 64D model.
 
-Increasing the embedding dimension from 64 to 128 produced a different precision-recall tradeoff.
+The 128D experiment had:
 
-The 128D experiment:
+- Higher recall
+- Slightly higher F1 score
+- Lower precision
+- Slightly lower accuracy
+- Very similar ROC-AUC
 
-- achieved higher recall;
-- achieved a slightly higher F1 score;
-- had lower precision;
-- had slightly lower accuracy;
-- had a very similar ROC-AUC.
+Therefore, increasing the embedding dimension from 64 to 128 did **not** improve every evaluation metric.
 
-Therefore, increasing the embedding dimension alone did not improve every evaluation metric.
+This experiment demonstrates that increasing the size of an embedding representation can change model behavior, but a larger embedding does not automatically guarantee better overall performance.
 
-##  Model Limitation Discovered
+> **Note:** The 128D results shown above represent the completed experimental run used for this project stage. Neural-network training can produce different results between runs because of random initialization and other training randomness.
 
-During testing with the Streamlit application, the model appeared to perform more reliably on longer reviews than on very short reviews.
+---
 
-For example, a longer review containing several sentiment-related words can provide the model with more information than a short input such as:
+## 🔎 Model Limitation Discovered
+
+During testing with the Streamlit application, the model appeared to be more reliable on longer reviews than on some very short inputs.
+
+For example:
 
 ```text
 "I love the movie."
 ```
 
-The current architecture also uses `GlobalAveragePooling1D`, which averages the word representations across the review. This provides a simple representation of the review but does not explicitly model word order.
+could sometimes receive an incorrect sentiment prediction.
 
-This limitation motivates the next experiment using **Word2Vec embeddings**.
+This suggests that the current model may have difficulty extracting enough sentiment information from very short reviews.
 
-##  Next Experiment: Word2Vec
+One possible limitation is the use of:
 
-The next stage of the project will investigate Word2Vec embeddings.
+```python
+GlobalAveragePooling1D()
+```
 
-Instead of relying only on the embedding representation learned directly by the classifier, Word2Vec will be trained on the movie-review training data to learn word representations from word-context relationships.
+This layer averages the word representations across the review. It provides a simple representation of the overall text, but it does not explicitly model word order or relationships between words.
 
-The Word2Vec experiment will then be compared with the current 128D baseline using the same evaluation metrics:
+This observation provides motivation for experimenting with other word-representation and model architectures.
+
+---
+
+## 🚀 Next Experiment: Word2Vec
+
+The next stage of the project will investigate **Word2Vec embeddings**.
+
+Unlike the current trainable Keras embedding, Word2Vec learns word representations from the relationships between words and their surrounding context.
+
+The planned workflow is:
+
+```text
+Training Reviews
+      ↓
+Tokenized Words
+      ↓
+Word2Vec
+      ↓
+Learned Word Vectors
+      ↓
+Embedding Matrix
+      ↓
+Sentiment Classifier
+      ↓
+Evaluation
+```
+
+The Word2Vec model will be evaluated using the same metrics:
 
 - Accuracy
 - Precision
@@ -146,48 +228,56 @@ The Word2Vec experiment will then be compared with the current 128D baseline usi
 - F1 Score
 - ROC-AUC
 
-##  Running the Application
+The goal is to determine whether an alternative word-representation approach can improve the current model, particularly when dealing with short reviews.
 
-### 1. Clone the repository
+**Word2Vec experimentation and further model fine-tuning will continue after the current presentation.**
+
+---
+
+## 🖥️ Running the Application
+
+### 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd movie-sentiment
 ```
 
-### 2. Create a virtual environment
+### 2. Create a Virtual Environment
 
-Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 python -m venv .venv
 ```
 
-### 3. Activate the environment
+### 3. Activate the Environment
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 4. Install dependencies
+### 4. Install Dependencies
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-### 5. Run the Streamlit application
+### 5. Run the Streamlit Application
 
 ```powershell
 python -m streamlit run app.py
 ```
 
-The application should open in your browser at:
+The application will normally be available at:
 
 ```text
 http://localhost:8501
 ```
 
-##  Project Structure
+---
+
+## 📁 Project Structure
 
 ```text
 movie-sentiment/
@@ -201,7 +291,9 @@ movie-sentiment/
 └── README.md
 ```
 
-##  Technologies
+---
+
+## 🛠️ Technologies
 
 - Python
 - TensorFlow / Keras
@@ -209,19 +301,24 @@ movie-sentiment/
 - NumPy
 - Scikit-learn
 - Streamlit
-- NLP
+- Natural Language Processing (NLP)
 - Word Embeddings
 - Git & GitHub
 
-##  Future Improvements
+---
+
+## 🔮 Future Improvements
 
 - Experiment with Word2Vec embeddings
-- Compare Word2Vec with the current trainable embeddings
-- Improve performance on short reviews
+- Compare Word2Vec with trainable Keras embeddings
+- Improve classification of short reviews
 - Investigate sequence-aware architectures
 - Tune model hyperparameters
-- Improve prediction confidence
+- Improve prediction reliability
+- Evaluate additional text-representation approaches
 - Deploy the improved model to the Streamlit application
+
+---
 
 ## 👩 Author
 
